@@ -22,6 +22,8 @@ The user journeys and suggested test cases are in
 Run `make test` and `make test-mysqli` to check both database paths with an
 isolated Apache board and database. See [dev/testing.md](dev/testing.md) for
 CLI and web request coverage results and current gaps.
+Run `make lint` to check PHP syntax and source formatting. The code layout and
+rules for changes are in [dev/architecture.md](dev/architecture.md).
 GitHub Actions runs `make test`, `make test-mysqli`, `make test-pgsql`, and
 `make test-js` on every push and pull request. Each job publishes a test summary
 and a downloadable JUnit report.

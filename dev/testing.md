@@ -41,13 +41,13 @@ images include video thumbnail tools. The repository source and production image
 and ordinary embed configuration. This lets tests submit correct, wrong, and
 reused answers without OCR or a public embed API.
 
-## Coverage baseline (2026-10-02)
+## Coverage baseline (2026-10-03)
 
 | Run | Tests | Assertions | CLI coverage | CLI + web coverage |
 | --- | ---: | ---: | ---: | ---: |
-| PDO/MySQL | 37 | 303 | 955 / 3,448 (27.70%) | 2,187 / 3,448 (63.43%) |
-| mysqli | 37 | 303 | 947 / 3,398 (27.87%) | 2,173 / 3,398 (63.95%) |
-| PDO/PostgreSQL | 29 | 136 | 952 / 3,448 (27.61%) | No HTTP run |
+| PDO/MySQL | 42 | 320 | 1,060 / 3,329 (31.84%) | 2,251 / 3,329 (67.62%) |
+| mysqli | 42 | 320 | 1,052 / 3,287 (32.00%) | 2,237 / 3,287 (68.06%) |
+| PDO/PostgreSQL | 34 | 153 | 1,057 / 3,329 (31.75%) | No HTTP run |
 
 The browser script has 5 passing Node tests. It has no JavaScript line
 coverage report.
@@ -55,11 +55,11 @@ coverage report.
 PHPUnit's HTML and Clover reports show CLI coverage only. The combined metric
 unions its covered executable lines with PCOV hits saved by Apache for each
 request. The coverage denominator includes both database files. In each run,
-the inactive database file is 0% by design. The combined figures cover
-615/925 lines in `imgboard.php`, 107/126 in `inc/captcha.php`, 265/439 in
-shared functions, and 769/984 in HTML rendering. The active PDO implementation
-has 431/477 lines covered; mysqli has 417/443. Bundled reCAPTCHA code and
-static username lists are excluded from the denominator.
+the inactive database file is 0% by design. The PDO combined figures cover
+206/273 lines in `imgboard.php`, 107/126 in `inc/captcha.php`, 135/137 in
+shared database operations, and 240/264 in post rendering. The active PDO
+implementation has 300/344 lines covered; mysqli has 286/310. Bundled
+reCAPTCHA code and static username lists are excluded from the denominator.
 
 The HTTP suite covers guest posting with a correct, wrong, and reused CAPTCHA
 answer; invalid parent, empty or oversized message, locked thread, unsupported
