@@ -14,6 +14,14 @@ final class FunctionsTest extends TestCase {
         self::assertSame('posts', plural('post', 2));
     }
 
+    public function testPostingMessageFormatting(): void {
+        self::assertSame(
+            '&lt;tag&gt; <b>bold</b><br><span class="unkfunc">&gt;quoted</span>',
+            formatPostMessage('<tag> **bold**' . "\n>quoted", [], [])
+        );
+        self::assertSame('<code>a &amp; b</code>', formatPostMessage('`a & b`', [], []));
+    }
+
     public function testAllSubstringOffsets(): void {
         self::assertSame([0, 3, 6], strallpos('abcabcabc', 'abc'));
         self::assertSame([3, 6], strallpos('abcabcabc', 'abc', 2));
