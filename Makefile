@@ -1,4 +1,4 @@
-.PHONY: up down logs seed status reset test test-mysqli test-pgsql test-js
+.PHONY: up down logs seed status reset lint test test-mysqli test-pgsql test-js
 
 COMPOSE = docker compose --project-directory . -f dev/compose.yaml
 TEST_COMPOSE = docker compose --project-directory . -f dev/compose.test.yaml
@@ -22,6 +22,11 @@ status:
 
 reset:
 	$(COMPOSE) down -v
+
+lint:
+	@php -l imgboard.php
+	@find inc dev -name '*.php' -not -path 'inc/recaptcha/*' -not -path 'inc/usernames/*' -not -path 'dev/coverage/*' -print0 | xargs -0 -n1 php -l >/dev/null
+	@echo "PHP syntax OK"
 
 test:
 	@mkdir -p dev/coverage

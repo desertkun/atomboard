@@ -27,6 +27,8 @@ jobs:
             report: pgsql
     steps:
       - uses: actions/checkout@v7
+      - name: Check PHP syntax
+        run: make lint
       - name: Run tests
         run: make ${{ matrix.target }}
       - name: Summarize tests
