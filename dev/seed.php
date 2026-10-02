@@ -6,6 +6,7 @@ require 'settings.php';
 require 'inc/schema.php';
 require 'inc/functions.php';
 require 'inc/html.php';
+require 'inc/html_post.php';
 require 'inc/database_pdo.php';
 date_default_timezone_set(ATOM_TIMEZONE);
 $_SERVER['REMOTE_ADDR'] = '127.0.0.1';

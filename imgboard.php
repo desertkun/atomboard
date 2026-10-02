@@ -493,7 +493,7 @@ foreach (['res', 'src', 'thumb'] as $dir) {
 
 // Dynamic connection of PHP scripts
 $incPath = __DIR__ . '/inc/';
-$includes = [$incPath . 'schema.php', $incPath . 'functions.php', $incPath . 'html.php', $incPath . 'html_management.php', $incPath . 'html_bans.php',
+$includes = [$incPath . 'schema.php', $incPath . 'functions.php', $incPath . 'html.php', $incPath . 'html_post.php', $incPath . 'html_management.php', $incPath . 'html_bans.php',
 	$incPath . 'html_passcodes.php', $incPath . 'html_moderation.php', $incPath . 'posting.php', $incPath . 'media.php', $incPath . 'management.php'];
 if (in_array(ATOM_DBMODE, ['mysqli', 'pdo'])) {
 	$includes[] = $incPath . 'database_' . ATOM_DBMODE . '.php';

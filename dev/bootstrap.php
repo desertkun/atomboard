@@ -34,6 +34,7 @@ $_SERVER['PHP_SELF'] = '/unit/imgboard.php';
 require __DIR__ . '/../inc/schema.php';
 require __DIR__ . '/../inc/functions.php';
 require __DIR__ . '/../inc/html.php';
+require __DIR__ . '/../inc/html_post.php';
 require __DIR__ . '/../inc/html_management.php';
 require __DIR__ . '/../inc/html_bans.php';
 require __DIR__ . '/../inc/html_passcodes.php';
