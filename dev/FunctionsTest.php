@@ -43,6 +43,13 @@ final class FunctionsTest extends TestCase {
         self::assertSame([str_repeat('x', 75), ''], parsePostName(str_repeat('x', 80)));
     }
 
+    public function testUploadSizeFormattingAtUnitBoundaries(): void {
+        self::assertSame('1023B', formatUploadSize(1023));
+        self::assertSame('1.00KB', formatUploadSize(1024));
+        self::assertSame('1.00MB', formatUploadSize(1048576));
+        self::assertSame('1.00GB', formatUploadSize(1073741824));
+    }
+
     public function testAllSubstringOffsets(): void {
         self::assertSame([0, 3, 6], strallpos('abcabcabc', 'abc'));
         self::assertSame([3, 6], strallpos('abcabcabc', 'abc', 2));

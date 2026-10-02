@@ -40,5 +40,6 @@ require __DIR__ . '/../inc/html_bans.php';
 require __DIR__ . '/../inc/html_passcodes.php';
 require __DIR__ . '/../inc/html_moderation.php';
 require __DIR__ . '/../inc/posting.php';
+require __DIR__ . '/../inc/media.php';
 global $dbh, $mysqli;
 require __DIR__ . '/../inc/database_' . ATOM_DBMODE . '.php';
