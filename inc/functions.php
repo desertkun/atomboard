@@ -41,9 +41,9 @@ function hslToHex(float $h, float $s, float $l): string {
 		if ($t < 2/3) return $p + ($q - $p) * (2/3 - $t) * 6;
 		return $p;
 	};
-	return sprintf('#%02x%02x%02x', 
-		(int)round($f($h + 1/3) * 255), 
-		(int)round($f($h) * 255), 
+	return sprintf('#%02x%02x%02x',
+		(int)round($f($h + 1/3) * 255),
+		(int)round($f($h) * 255),
 		(int)round($f($h - 1/3) * 255));
 }
 

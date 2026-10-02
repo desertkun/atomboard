@@ -26,6 +26,7 @@ reset:
 lint:
 	@php -l imgboard.php
 	@find inc dev -name '*.php' -not -path 'inc/recaptcha/*' -not -path 'inc/usernames/*' -not -path 'dev/coverage/*' -print0 | xargs -0 -n1 php -l >/dev/null
+	@python3 dev/check-style.py
 	@echo "PHP syntax OK"
 
 test:

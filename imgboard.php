@@ -6,8 +6,8 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 // Store session cookie for 30 days
-ini_set('session.gc_maxlifetime', 2592000); 
-session_set_cookie_params(2592000); 
+ini_set('session.gc_maxlifetime', 2592000);
+session_set_cookie_params(2592000);
 session_start();
 setcookie(session_name(), session_id(), time() + 2592000);
 
@@ -454,7 +454,7 @@ if (isset($_GET['ban_reasons'])) {
 	die(json_encode($atom_ban_reasons, JSON_UNESCAPED_UNICODE));
 }
 
-// Initialization of empty board 
+// Initialization of empty board
 if (!file_exists(ATOM_INDEX) || getThreadsCount() === 0) {
 	rebuildIndexPages();
 }

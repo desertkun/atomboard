@@ -249,8 +249,8 @@ function getPostsByIP(string $ip): array {
 				[$ip]);
 		} else {
 			$result = pdoQuery(
-				"SELECT * FROM " . ATOM_DBPOSTS . " 
-				WHERE INET_ATON(ip) >= ? AND INET_ATON(ip) <= ? 
+				"SELECT * FROM " . ATOM_DBPOSTS . "
+				WHERE INET_ATON(ip) >= ? AND INET_ATON(ip) <= ?
 				ORDER BY timestamp DESC",
 				$ipRange);
 		}
@@ -653,7 +653,7 @@ function addStaffMember(string $userName, string $passw, string $role): bool {
 			VALUES (?, ?, ?)",
 			[trim($userName), password_hash($passw, PASSWORD_DEFAULT), $role]
 		);
-		return true; 
+		return true;
 	} catch (PDOException $e) {
 		if ($e->getCode() === '23505') { // Unique key conflict - user already exists
 			return false;

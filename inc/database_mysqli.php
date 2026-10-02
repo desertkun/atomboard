@@ -641,7 +641,7 @@ function addStaffMember(string $userName, string $passw, string $role): bool {
 		return true;
 	} catch (mysqli_sql_exception $e) {
 		if ($e->getCode() === 1062) { // Unique key conflict - user already exists
-			return false; 
+			return false;
 		}
 		throw $e;
 	}
