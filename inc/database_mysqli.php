@@ -61,6 +61,11 @@ if ($result->num_rows === 0) {
 }
 $result->close();
 
+function dbWrite(string $query, array $params): void {
+	global $mysqli;
+	$mysqli->execute_query($query, $params);
+}
+
 /* ==[ Posts ]============================================================================================= */
 
 function insertPost(array $post): int {
@@ -250,95 +255,6 @@ function getUniquePostersCount(): int {
 	return (int)$result->fetch_column();
 }
 
-function approvePost(int $id): void {
-	global $mysqli;
-	$mysqli->execute_query(
-		"UPDATE " . ATOM_DBPOSTS . "
-		SET moderated = ?
-		WHERE id = ?",
-		['1', $id]);
-}
-
-function deletePost(int $id): void {
-	global $mysqli;
-	$posts = getThreadPosts($id, false);
-	foreach ($posts as $post) {
-		$postId = (int)$post['id'];
-		if ($postId !== $id) {
-			deletePostImageFiles($post);
-			$mysqli->execute_query(
-				"DELETE FROM " . ATOM_DBPOSTS . "
-				WHERE id = ?",
-				[$postId]);
-		} else {
-			$thispost = $post;
-		}
-	}
-	if (isset($thispost)) {
-		$thispostId = (int)$thispost['id'];
-		if ($thispost['parent'] === 0) {
-			@unlink('res/' . $thispostId . '.html');
-		}
-		deletePostImageFiles($thispost);
-		$mysqli->execute_query(
-			"DELETE FROM " . ATOM_DBPOSTS . "
-			WHERE id = ?",
-			[$thispostId]);
-	}
-	deleteReports($id);
-	deleteLikes($id);
-}
-
-function deletePostImages(array $post, array $imgList): void {
-	global $mysqli;
-	deletePostImageFiles($post, $imgList);
-	if ($imgList && count($imgList) <= ATOM_FILES_COUNT) {
-		foreach ($imgList as $arrayIndex => $index) {
-			$index = intval(trim(basename($index)));
-			$mysqli->execute_query(
-				"UPDATE " . ATOM_DBPOSTS . "
-				SET file" . $index . " = ?,
-					file" . $index . "_hex = ?,
-					file" . $index . "_original = ?,
-					file" . $index . "_size = ?,
-					file" . $index . "_size_formatted = ?,
-					image" . $index . "_width = ?,
-					image" . $index . "_height = ?,
-					thumb" . $index . " = ?,
-					thumb" . $index . "_width = ?,
-					thumb" . $index . "_height = ?
-				WHERE id = ?",
-				['', '', '', '0', '', '0', '0', '', '0', '0', $post['id']]);
-		}
-	}
-}
-
-function hidePostImages(array $post, array $imgList): void {
-	global $mysqli;
-	deletePostThumbFiles($post, $imgList);
-	if ($imgList && (count($imgList) <= ATOM_FILES_COUNT) ) {
-		foreach ($imgList as $arrayIndex => $index) {
-			$index = intval(trim(basename($index)));
-			$mysqli->execute_query(
-				"UPDATE " . ATOM_DBPOSTS . "
-				SET thumb" . $index . " = ?,
-					thumb" . $index . "_width = ?,
-					thumb" . $index . "_height = ?
-				WHERE id = ?",
-				['spoiler.png', ATOM_FILE_MAXW, ATOM_FILE_MAXW, $post['id']]);
-		}
-	}
-}
-
-function editPostMessage(int $id, string $newMessage): void {
-	global $mysqli;
-	$result = $mysqli->execute_query(
-		"UPDATE " . ATOM_DBPOSTS . "
-		SET message = ?
-		WHERE id = ?",
-		[$newMessage, $id]);
-}
-
 /* ==[ Threads ]=========================================================================================== */
 
 function isThreadExists(int $id): bool {
@@ -401,42 +317,6 @@ function getThreadPostsCount(int $id): int {
 		WHERE parent = ? AND moderated = 1",
 		[$id]);
 	return (int)$result->fetch_column();
-}
-
-function toggleStickyThread(int $id, int $isStickied): void {
-	global $mysqli;
-	$mysqli->execute_query(
-		"UPDATE " . ATOM_DBPOSTS . "
-		SET stickied = ?
-		WHERE id = ?",
-		[$isStickied, $id]);
-}
-
-function toggleLockThread(int $id, int $isLocked): void {
-	global $mysqli;
-	$mysqli->execute_query(
-		"UPDATE " . ATOM_DBPOSTS . "
-		SET locked = ?
-		WHERE id = ?",
-		[$isLocked, $id]);
-}
-
-function toggleEndlessThread(int $id, int $isEndless): void {
-	global $mysqli;
-	$mysqli->execute_query(
-		"UPDATE " . ATOM_DBPOSTS . "
-		SET endless = ?
-		WHERE id = ?",
-		[$isEndless, $id]);
-}
-
-function bumpThread(int $id): void {
-	global $mysqli;
-	$mysqli->execute_query(
-		"UPDATE " . ATOM_DBPOSTS . "
-		SET bumped = ?
-		WHERE id = ?",
-		[time(), $id]);
 }
 
 /* ==[ Bans ]============================================================================================== */
@@ -826,3 +706,5 @@ function modLog(string $action, string $private = '0', string $color = 'Black'):
 		VALUES (?, ?, ?, ?, ?, ?)",
 		[time(), ATOM_BOARD, $userName, $action, $color, $private]);
 }
+
+require_once __DIR__ . '/database_common.php';
