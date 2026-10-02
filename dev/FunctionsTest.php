@@ -35,6 +35,14 @@ final class FunctionsTest extends TestCase {
         self::assertStringContainsString('<time class="post-date"', $markup);
     }
 
+    public function testPostNameParsingKeepsLegacyTripcodes(): void {
+        self::assertSame(['Alice', ''], parsePostName('Alice'));
+        [$name, $tripcode] = parsePostName('Alice#secret');
+        self::assertSame('Alice', $name);
+        self::assertSame(10, strlen($tripcode));
+        self::assertSame([str_repeat('x', 75), ''], parsePostName(str_repeat('x', 80)));
+    }
+
     public function testAllSubstringOffsets(): void {
         self::assertSame([0, 3, 6], strallpos('abcabcabc', 'abc'));
         self::assertSame([3, 6], strallpos('abcabcabc', 'abc', 2));

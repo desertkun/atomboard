@@ -176,19 +176,122 @@ function buildPostNameblock(
 			$ipHashHex,
 			hslToHex($ipHashInt % 360, 1, .3),
 			htmlspecialchars($uidLabel, ENT_QUOTES, 'UTF-8'));
+	}
+	if ($post['email'] !== '') {
+		$lowEmail = strtolower($post['email']);
+		if ($lowEmail !== 'noko') {
+			$postNameBlock = sprintf('<a href="mailto:%s"%s>%s</a>',
+				escapeHTML($post['email']),
+				($lowEmail === 'sage' ? ' class="sage"' : ''),
+				$postNameBlock);
+		}
+	}
+	$timestamp = time();
+	return sprintf('%s <time class="post-date" datetime="%s">%s</time>',
+		$postNameBlock,
+		date('c', $timestamp),
+		date('d.m.y D H:i:s', $timestamp));
 }
-if ($post['email'] !== '') {
-	$lowEmail = strtolower($post['email']);
-	if ($lowEmail !== 'noko') {
-		$postNameBlock = sprintf('<a href="mailto:%s"%s>%s</a>',
-			escapeHTML($post['email']),
-			($lowEmail === 'sage' ? ' class="sage"' : ''),
-			$postNameBlock);
+
+function validateGuestPostingAccess(bool $isPasscode, array $atom_banned_countries): void {
+	// Checking for captcha if no passcode
+	if (!$isPasscode) {
+		checkCaptcha();
+	}
+
+	// Check for banned countries
+	$ip = $_SERVER['REMOTE_ADDR'];
+	if (ATOM_GEOIP && !empty($atom_banned_countries)) {
+		$countryCode = getCountryCode($ip, ATOM_GEOIP === 'geoip2' ?
+			new GeoIp2\Database\Reader('/usr/share/GeoIP/GeoLite2-Country.mmdb') : null);
+		if (in_array($countryCode, $atom_banned_countries)) {
+			fancyDie('Posting error: Posting from your country (' . $countryCode . ') is prohibited.');
+		}
+	}
+
+	// Check for dirty IP and bans
+	checkIP($ip, $isPasscode, false);
+
+	// Check for flooding
+	if (ATOM_POSTING_DELAY > 0) {
+		$lastpost = getLastPostByIP();
+		if ($lastpost && (time() - $lastpost['timestamp']) < ATOM_POSTING_DELAY) {
+			$timeLeft = ATOM_POSTING_DELAY - (time() - $lastpost['timestamp']);
+			fancyDie('Posting error: You will be able to make another post in ' . $timeLeft . ' ' .
+				plural('second', $timeLeft) . '.<br>Please wait a moment before posting again.');
+		}
 	}
 }
-$timestamp = time();
-return sprintf('%s <time class="post-date" datetime="%s">%s</time>',
-	$postNameBlock,
-	date('c', $timestamp),
-	date('d.m.y D H:i:s', $timestamp));
+
+function parsePostName(string $postName): array {
+	// Look for the first separator (# or !)
+	$delimPos = strpbrk($postName, '#!');
+	if ($delimPos !== false) {
+		$capDelimiter = $delimPos[0];
+		[$namePart, $capPart] = explode($capDelimiter, $postName, 2);
+		$tripcode = '';
+		// Check for a second level (secure trip) within the tail. For example: name#cap#secure
+		$capSecure = '';
+		if (strpos($capPart, $capDelimiter) !== false) {
+			[$cap, $capSecure] = explode($capDelimiter, $capPart, 2);
+		} else {
+			$cap = $capPart;
+		}
+		// Regular tripcode (DES crypt)
+		if ($cap !== '') {
+			// Convert to SJIS for compatibility with older Japanese boards
+			if (function_exists('mb_convert_encoding')) {
+				$cap = mb_convert_encoding($cap, 'SJIS', 'UTF-8') ?: $cap;
+			}
+			$cap = str_replace(['&amp;', ','], ['&', ', '], $cap);
+			$salt = substr($cap . 'H.', 1, 2);
+			$salt = preg_replace('/[^\.-z]/', '.', $salt);
+			$salt = strtr($salt, ':;<=>?@[\\]^_`', 'ABCDEFGabcdef');
+			$tripcode = substr(crypt($cap, $salt), -10);
+		}
+		// Secure tripcode (based on MD5 + SALT)
+		if ($capSecure !== '') {
+			if ($tripcode !== '') {
+				$tripcode .= '!';
+			}
+			$tripcode .= '!' . substr(md5($capSecure . ATOM_TRIPSEED), 2, 10);
+		}
+		$name = $namePart;
+	} else {
+		$name = $postName;
+		$tripcode = '';
+	}
+	$name = mb_substr($name, 0, 75);
+	return [$name, $tripcode];
+}
+
+function validatePostWithoutMedia(
+	array $post, array $hideFields, bool $isStaffPost, array $atom_uploads, array $atom_embeds
+): void {
+	if ($post['file0'] === '') {
+		$allowedItems = [];
+		$isAllowedToPost = $isStaffPost || !in_array('file', $hideFields);
+		$isAllowedToEmbed = $isStaffPost || !in_array('embed', $hideFields);
+		if (!empty($atom_uploads) && $isAllowedToPost) {
+			$allowedItems[] = 'file';
+		}
+		if (!empty($atom_embeds) && $isAllowedToEmbed) {
+			$allowedItems[] = 'embed URL';
+		}
+		$allowedStr = implode(' or ', $allowedItems);
+		if (!ATOM_NOFILEOK && isOp($post) && !empty($allowedItems)) {
+			fancyDie('Posting error: A ' . $allowedStr . ' is required to start a thread.');
+		}
+		if (!$isStaffPost && str_replace('<br>', '', $post['message']) === '') {
+			$dieMsg = [];
+			if (!in_array('message', $hideFields)) {
+				$dieMsg[] = 'enter a message';
+			}
+			if (!empty($allowedItems)) {
+				$dieMsg[] = 'upload a ' . $allowedStr;
+			}
+			$separator = (!in_array('message', $hideFields) && !empty($allowedItems)) ? ' and/or ' : '';
+			fancyDie('Posting error: Please ' . implode($separator, $dieMsg) . '.');
+		}
+	}
 }
