@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 chdir(dirname(__DIR__));
 require 'settings.php';
+require 'inc/schema.php';
 require 'inc/functions.php';
 require 'inc/html.php';
 require 'inc/database_pdo.php';

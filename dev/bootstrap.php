@@ -31,6 +31,7 @@ unlink($testSettings);
 
 $_SERVER['REMOTE_ADDR'] = '192.0.2.10';
 $_SERVER['PHP_SELF'] = '/unit/imgboard.php';
+require __DIR__ . '/../inc/schema.php';
 require __DIR__ . '/../inc/functions.php';
 require __DIR__ . '/../inc/html.php';
 require __DIR__ . '/../inc/html_management.php';
