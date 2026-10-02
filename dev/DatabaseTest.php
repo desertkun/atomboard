@@ -4,6 +4,15 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 
 final class DatabaseTest extends TestCase {
+    public function testSharedPostInsertStatementMatchesValues(): void {
+        $post = newPost(0);
+        $post['likes'] = 0;
+        $post['pass'] = 0;
+        [$query, $values] = postInsertStatement($post, 1234, '192.0.2.5');
+        self::assertSame(substr_count($query, '?'), count($values));
+        self::assertSame(1234, $values[1]);
+        self::assertSame('192.0.2.5', $values[3]);
+    }
     protected function setUp(): void {
         global $dbh, $mysqli;
         foreach ([ATOM_DBLIKES, ATOM_DBREPORTS, ATOM_DBPASS, ATOM_DBPOSTS,
