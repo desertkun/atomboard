@@ -291,6 +291,11 @@ function managementInfoActions(string $token): void {
 }
 
 function managementPostActions(string $token): void {
+	managementPostEdits($token);
+	managementThreadControls();
+}
+
+function managementPostEdits(string $token): void {
 	/* --------[ Delete a post or thread ]-------- */
 
 	if (is_numeric($_POST['delete'] ?? null)) {
@@ -397,7 +402,9 @@ function managementPostActions(string $token): void {
 		}
 		manageDie(makePostModForm(), 'moderate');
 	}
+}
 
+function managementThreadControls(): void {
 	/* --------[ Stick a thread ]-------- */
 
 	if (is_numeric($_POST['stick'] ?? null) && is_numeric($_POST['setsticky'] ?? null)) {
