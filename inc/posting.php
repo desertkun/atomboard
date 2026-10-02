@@ -130,3 +130,65 @@ function formatPostMessage(string $message, array $atom_replace_text, array $ato
 	}
 	return $msg;
 }
+
+function buildPostNameblock(
+	array $post, array $passcode, string $loginStatus, bool $hasAccess, bool $isAdmin, bool $isPasscode
+): string {
+	$pass = $post['pass'] && $passcode[1] ?
+		'<img class="poster-achievement" height="18" title="Donator" src="/' .
+		ATOM_BOARD . '/icons/donator.png"> ' : '';
+	$nameClass = 'poster-name' .
+		($hasAccess && $post['name'] ? ($isAdmin ? ' poster-name-admin' : ' poster-name-mod') : '');
+	$posterName = escapeHTML(($post['name'] || $post['tripcode']) ? $post['name'] : ATOM_POSTERNAME);
+	$posterTrip = $post['tripcode'] !== '' ?
+		'<span class="poster-trip">!' . $post['tripcode'] . '</span>' : '';
+	$postNameBlock = sprintf('%s<span class="%s">%s</span>%s', $pass, $nameClass, $posterName, $posterTrip);
+	if ($hasAccess && ($post['name'] || $post['tripcode'])) {
+		$roles = ['admin' => '## Admin', 'janitor' => '## Janitor', 'moderator' => '## Mod'];
+		if (isset($roles[$loginStatus])) {
+			$roleClass = $isAdmin ? 'poster-name-admin' : 'poster-name-mod';
+			$postNameBlock .= ' <span class="' . $roleClass . '">' . $roles[$loginStatus] . '</span>';
+		}
+	} elseif (ATOM_UNIQUEID) {
+		$ip = $post['ip'];
+		$parentId = (int)$post['parent'];
+		// Generate a main hash from IP for the ID and name
+		$fullHash = hash_hmac('sha256', $ip . $parentId, ATOM_TRIPSEED);
+		$ipHashHex = substr($fullHash, 0, 8);
+		$ipHashInt = hexdec($ipHashHex);
+		$uidLabel = $ipHashHex;
+		if (ATOM_UNIQUENAME) {
+			if($isPasscode && $passcode[2]) {
+				$uidLabel = $passcode[2];
+			} else {
+				global $firstNames, $lastNames;
+				// Generate firstname by main hash
+				$fName = !empty($firstNames) ? $firstNames[$ipHashInt % count($firstNames)] : '';
+				// Generate lastname by subnet /20 (using mask)
+				$subnet = long2ip(ip2long($ip) & 0xFFFFF000);
+				$subHashInt = hexdec(substr(hash_hmac('sha256', $subnet . $parentId, ATOM_TRIPSEED), 0, 8));
+				$lName = !empty($lastNames) ? $lastNames[$subHashInt % count($lastNames)] : '';
+				$uidLabel = trim($fName . ' ' . $lName) ?: $ipHashHex;
+			}
+		}
+		$postNameBlock .= sprintf(
+			' <span class="poster-uid" data-uid="%s" style="color: %s;">%s</span>',
+			$ipHashHex,
+			hslToHex($ipHashInt % 360, 1, .3),
+			htmlspecialchars($uidLabel, ENT_QUOTES, 'UTF-8'));
+}
+if ($post['email'] !== '') {
+	$lowEmail = strtolower($post['email']);
+	if ($lowEmail !== 'noko') {
+		$postNameBlock = sprintf('<a href="mailto:%s"%s>%s</a>',
+			escapeHTML($post['email']),
+			($lowEmail === 'sage' ? ' class="sage"' : ''),
+			$postNameBlock);
+	}
+}
+$timestamp = time();
+return sprintf('%s <time class="post-date" datetime="%s">%s</time>',
+	$postNameBlock,
+	date('c', $timestamp),
+	date('d.m.y D H:i:s', $timestamp));
+}

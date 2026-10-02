@@ -22,6 +22,19 @@ final class FunctionsTest extends TestCase {
         self::assertSame('<code>a &amp; b</code>', formatPostMessage('`a & b`', [], []));
     }
 
+    public function testPostNameblockKeepsIdentityAndEmailMarkup(): void {
+        $post = newPost(0);
+        $post['name'] = '<Alice>';
+        $post['tripcode'] = 'trip';
+        $post['email'] = 'sage';
+        $post['pass'] = 0;
+        $markup = buildPostNameblock($post, [0], 'disabled', false, false, false);
+        self::assertStringContainsString('&lt;Alice&gt;', $markup);
+        self::assertStringContainsString('<span class="poster-trip">!trip</span>', $markup);
+        self::assertStringContainsString('class="sage"', $markup);
+        self::assertStringContainsString('<time class="post-date"', $markup);
+    }
+
     public function testAllSubstringOffsets(): void {
         self::assertSame([0, 3, 6], strallpos('abcabcabc', 'abc'));
         self::assertSame([3, 6], strallpos('abcabcabc', 'abc', 2));
